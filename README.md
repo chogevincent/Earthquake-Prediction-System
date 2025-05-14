@@ -8,10 +8,15 @@ Developed by: CHOGE VINCENTDate: May 14, 2025Technologies: Python, Django, HTML,
 # Features
 
 Data Input: Users can input earthquake data (latitude, longitude, magnitude, depth).
+
 Prediction: Predicts earthquake magnitude using a linear regression model.
+
 Visualization: Displays results with bar graphs (magnitude, confidence, probability, accuracy) and real-world maps.
+
 PDF Export: Generates landscape PDF reports of prediction data.
+
 Admin Interface: Allows deletion of records for data management.
+
 Alignment: Supports disaster risk reduction goals (Sendai Framework, SDG 11).
 
 # Prerequisites
