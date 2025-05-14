@@ -80,9 +80,13 @@ Admin Interface: Visit http://127.0.0.1:8000/admin_dashboard/ to manage and dele
 # Project Structure
 
 earthquake_project/: Main Django project directory.
+
 earthquake/: App containing models, views, and templates.
+
 models.py: Defines Earthquake and Prediction models.
+
 views.py: Handles logic for prediction, visualization, and PDF generation.
+
 templates/: HTML templates for rendering pages.
 
 
@@ -97,17 +101,24 @@ Contributions are welcome! To contribute:
 
 Fork the repository.
 Create a new branch (git checkout -b feature/your-feature).
+
 Make your changes and commit (git commit -m "Add your feature").
+
 Push to your branch (git push origin feature/your-feature).
+
 Open a Pull Request on GitHub.
 
 Please ensure your code follows PEP 8 standards and includes appropriate comments.
 Future Enhancements
 
 Integrate real-time seismic data (e.g., USGS API).
+
 Implement advanced machine learning models (e.g., deep learning).
+
 Develop a mobile application for broader accessibility.
+
 Add multi-language support for global users.
+
 
 # Contact
 For questions, support, or collaboration, contact:  
