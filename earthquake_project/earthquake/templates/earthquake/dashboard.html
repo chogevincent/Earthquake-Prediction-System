@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Earthquake Prediction Dashboard</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="anonymous" />
+    <style>
+        .bg-dark-blue {
+            background-color: #1a237e;
+        }
+        .nav-link {
+            color: white !important;
+            transition: color 0.3s ease, transform 0.3s ease;
+        }
+        .nav-link:hover {
+            color: #ff9800 !important;
+            transform: scale(1.1);
+        }
+        .table {
+            background-color: #f8f9fa;
+        }
+        .location-chart {
+            height: 300px !important;
+            width: 100% !important;
+        }
+        #map {
+            height: 400px !important;
+            width: 100% !important;
+            margin-top: 20px;
+        }
+        footer {
+            background-color: #1a237e;
+            color: white;
+            padding: 10px 0;
+            text-align: center;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg bg-dark-blue">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">
+                <img src="/static/logo.jpg" alt="Earthquake Prediction Logo" style="height: 60px;">
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'home' %}">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" aria-current="page" href="{% url 'dashboard' %}">Prediction Results</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'predict' %}">Make Prediction</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'download_pdf' %}">Download & Print PDF</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-5">
+        <h1 class="text-center mb-4">Earthquake Prediction System</h1>
+        <p class="text-center mb-5">Historical Earthquake Input Data and Predictions.</p>
+
+        <h3>Earthquake Inputs</h3>
+        <table class="table table-bordered mb-5">
+            <thead>
+                <tr>
+                    
+                    <th>Latitude</th>
+                    <th>Longitude</th>
+                    <th>Magnitude</th>
+                    <th>Depth</th>
+                    
+                </tr>
+            </thead>
+            <tbody>
+                {% for earthquake in earthquakes %}
+                    <tr>
+                        
+                        <td>{{ earthquake.latitude }} {{ earthquake.latitude_direction }}</td>
+                        <td>{{ earthquake.longitude }} {{ earthquake.longitude_direction }}</td>
+                        <td>{{ earthquake.magnitude }}</td>
+                        <td>{{ earthquake.depth }}</td>
+                        
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center">No earthquake data available.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <h3>Prediction Results</h3>
+        <table class="table table-bordered mb-5">
+            <thead>
+                <tr>
+                    <th>Predicted Location</th>
+                    <th>Predicted Magnitude</th>
+                    <th>Confidence (%)</th>
+                    <th>Probability (%)</th>
+                    <th>Prediction Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for prediction in predictions %}
+                    <tr>
+                        <td>{{ prediction.predicted_location }}</td>
+                        <td>{{ prediction.predicted_magnitude|floatformat:2 }}</td>
+                        <td>{{ prediction.confidence|floatformat:2 }}</td>
+                        <td>{{ prediction.probability|floatformat:2 }}</td>
+                        <td>{{ prediction.prediction_date }}</td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center">No predictions available.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+    
+        <!-- Real-World Map -->
+        <h3>Map Showing Predicted Locations</h3>
+        <div id="map"></div>
+        {% if not predictions %}
+            <p class="text-center mt-3">No prediction locations to display. Please add predictions via the Make Prediction Dashboard.</p>
+        {% endif %}
+
+        <!-- Footer -->
+        <footer>
+            <p>© 2025 Earthquake Prediction System.</p>
+        </footer>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js" integrity="sha384-JW1rJ4D2qP7qwi4O3bhmJ4uQb4HYLNRzO1Jy8h97GrwzuwfF2L3QMD+yf8E0OaFL+" crossorigin="anonymous"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin="anonymous"></script>
+    <script>
+        console.log('Starting dashboard JavaScript execution');
+
+        // Prepare data for bar graphs
+        const predictions = [
+            {% for prediction in predictions %}
+                {
+                    location: "{{ prediction.predicted_location|escapejs }}",
+                    magnitude: {{ prediction.predicted_magnitude }},
+                    confidence: {{ prediction.confidence }},
+                    probability: {{ prediction.probability }},
+                    latitude: {{ prediction.earthquake.latitude }},
+                    latitude_direction: "{{ prediction.earthquake.latitude_direction }}",
+                    longitude: {{ prediction.earthquake.longitude }},
+                    longitude_direction: "{{ prediction.earthquake.longitude_direction }}"
+                },
+            {% endfor %}
+        ];
+        console.log('Predictions data:', predictions);
+
+        // Group predictions by location
+        const locationData = {};
+        predictions.forEach(p => {
+            if (!locationData[p.location]) {
+                locationData[p.location] = [];
+            }
+            locationData[p.location].push({
+                magnitude: p.magnitude,
+                confidence: p.confidence,
+                probability: p.probability
+            });
+        });
+        console.log('Location data:', locationData);
+
+        // Create bar graphs for each location
+        Object.keys(locationData).forEach((location, index) => {
+            console.log(`Creating chart for ${location}`);
+            const data = locationData[location];
+            const magnitudes = data.map(d => d.magnitude);
+            const confidences = data.map(d => d.confidence);
+            const probabilities = data.map(d => d.probability);
+            const labels = data.map((_, i) => `Prediction ${i + 1}`);
+
+            const ctx = document.getElementById(`chart-${index + 1}`);
+            if (ctx) {
+                new Chart(ctx.getContext('2d'), {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [
+                            {
+                                label: 'Magnitude',
+                                data: magnitudes,
+                                backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                                borderColor: 'rgba(54, 162, 235, 1)',
+                                borderWidth: 1
+                            },
+                            {
+                                label: 'Confidence (%)',
+                                data: confidences,
+                                backgroundColor: 'rgba(75, 192, 192, 0.6)',
+                                borderColor: 'rgba(75, 192, 192, 1)',
+                                borderWidth: 1
+                            },
+                            {
+                                label: 'Probability (%)',
+                                data: probabilities,
+                                backgroundColor: 'rgba(255, 99, 132, 0.6)',
+                                borderColor: 'rgba(255, 99, 132, 1)',
+                                borderWidth: 1
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: 'Value'
+                                }
+                            },
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: 'Prediction'
+                                }
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                display: true
+                            },
+                            title: {
+                                display: true,
+                                text: `Metrics for ${location}`
+                            }
+                        }
+                    }
+                });
+            } else {
+                console.error(`Canvas element chart-${index + 1} not found`);
+            }
+        });
+
+        // Initialize Leaflet map
+        console.log('Initializing Leaflet map');
+        const mapElement = document.getElementById('map');
+        if (mapElement) {
+            const map = L.map('map').setView([0, 0], 2);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            }).addTo(map);
+
+            // Add markers with hover tooltips
+            predictions.forEach(p => {
+                const lat = p.latitude_direction === 'N' ? p.latitude : -p.latitude;
+                const lon = p.longitude_direction === 'E' ? p.longitude : -p.longitude;
+                console.log(`Adding marker for ${p.location} at [${lat}, ${lon}]`);
+                const marker = L.marker([lat, lon]).addTo(map);
+                marker.bindTooltip(p.location, {
+                    permanent: false,
+                    direction: 'top',
+                    offset: [0, -10]
+                });
+            });
+
+            // Adjust map bounds to fit all markers
+            if (predictions.length > 0) {
+                const bounds = L.latLngBounds(predictions.map(p => [
+                    p.latitude_direction === 'N' ? p.latitude : -p.latitude,
+                    p.longitude_direction === 'E' ? p.longitude : -p.longitude
+                ]));
+                map.fitBounds(bounds, { padding: [50, 50] });
+            } else {
+                console.log('No predictions available for map');
+            }
+        } else {
+            console.error('Map element not found');
+        }
+
+        console.log('Dashboard JavaScript execution completed');
+    </script>
+</body>
+</html>
